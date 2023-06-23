@@ -1,0 +1,14 @@
+[package]
+name = "bellado"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.2.16"
+clap = "4.3.5"
+dirs = "5.0.1"
+serde_json = "1.0.97"
+serde = "0.5"
+serde_derive = "1.0"
