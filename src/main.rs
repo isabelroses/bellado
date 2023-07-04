@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local};
-use clap::{Arg, ArgAction, Command};
+use clap::Parser;
 use dirs;
 use serde_json;
 use std::{
@@ -9,218 +9,39 @@ use std::{
     path::PathBuf,
 };
 
-fn main() {
-    let matches = Command::new("bellado")
-        .version("0.1.2")
-        .name("bellado")
-        .arg_required_else_help(true)
-        .about("A cli todo tool")
-        .author("isabel roses")
-        .subcommand(Command::new("init").about("Create the reqired files"))
-        .subcommand(
-            Command::new("add")
-                .long_flag("add")
-                .short_flag('a')
-                .about("Create a new task")
-                .arg(
-                    Arg::new("task")
-                        .action(ArgAction::Set)
-                        .num_args(1)
-                        .required(true)
-                        .help("Enter the task which you wish to create"),
-                )
-                .arg(
-                    Arg::new("categories")
-                        .long("categories")
-                        .short('c')
-                        .action(ArgAction::Set)
-                        .num_args(1..)
-                        .help("Enter the task which you wish to create"),
-                ),
-        )
-        .subcommand(
-            Command::new("list")
-                .long_flag("list")
-                .short_flag('l')
-                .about("List out tasks")
-                .arg(
-                    Arg::new("all")
-                        .short('a')
-                        .long("all")
-                        .action(ArgAction::SetTrue)
-                        .help("Show all tasks"),
-                )
-                .arg(
-                    Arg::new("show_complete")
-                        .short('c')
-                        .long("complete")
-                        .action(ArgAction::SetTrue)
-                        .conflicts_with("all")
-                        .help("Show completed tasks"),
-                )
-                .arg(
-                    Arg::new("categories")
-                        .long("categories")
-                        .short('s')
-                        .action(ArgAction::Set)
-                        .conflicts_with("all")
-                        .num_args(1..)
-                        .help("Search tasks with the given categories"),
-                ),
-        )
-        .subcommand(
-            Command::new("json")
-                .long_flag("json")
-                .short_flag('j')
-                .about("Output the json file")
-                .arg(
-                    Arg::new("pretty")
-                        .short('p')
-                        .long("pretty")
-                        .action(ArgAction::SetTrue)
-                        .help("Display the json in a pretty format"),
-                ),
-        )
-        .subcommand(
-            Command::new("completed")
-                .long_flag("complete")
-                .short_flag('c')
-                .about("Mark task(s) as done")
-                .arg(
-                    Arg::new("task_id")
-                        .action(ArgAction::Set)
-                        .num_args(1..)
-                        .required(true)
-                        .help("Task(s) to mark as compled/uncompleted"),
-                ),
-        )
-        .subcommand(
-            Command::new("delete")
-                .long_flag("delete")
-                .short_flag('d')
-                .about("Delete task(s)")
-                .arg(
-                    Arg::new("task_id")
-                        .action(ArgAction::Set)
-                        .num_args(1..)
-                        .required(true)
-                        .help("Task(s) to mark as uncompled"),
-                ),
-        )
-        .subcommand(
-            Command::new("edit")
-                .long_flag("edit")
-                .short_flag('e')
-                .about("Edit description task")
-                .arg(
-                    Arg::new("task_id")
-                        .action(ArgAction::Set)
-                        .num_args(1)
-                        .required(true)
-                        .help("Task to edit"),
-                )
-                .arg(
-                    Arg::new("new_text")
-                        .action(ArgAction::Set)
-                        .num_args(1)
-                        .required(true)
-                        .help("New description of task"),
-                ),
-        )
-        .subcommand(
-            Command::new("clear")
-                .short_flag('C')
-                .long_flag("clear")
-                .about("Delete all tasks"),
-        )
-        .subcommand(
-            Command::new("get")
-                .long_flag("get")
-                .short_flag('g')
-                .about("Get a task by id")
-                .arg(
-                    Arg::new("task")
-                        .action(ArgAction::Set)
-                        .num_args(1)
-                        .required(true)
-                        .help("The id of the task you wish to get"),
-                ),
-        )
-        .get_matches();
+mod cli;
+use cli::{Cli, Commands};
 
-    match matches.subcommand() {
-        Some(("init", _)) => {
+fn main() {
+    let args = Cli::parse();
+    println!("{:?}", args);
+
+    match args.command {
+        Commands::Init { } => {
             init();
         }
-        Some(("list", list_match)) => {
-            let showall = list_match.get_flag("all");
-            let show_complete = list_match.get_flag("show_complete");
-            if list_match.contains_id("categories") {
-                let categories = list_match
-                    .get_many::<String>("categories")
-                    .expect("is present")
-                    .map(|s| s.as_str())
-                    .collect::<Vec<_>>();
-                list_tasks(showall, show_complete, categories);
-                return;
-            }
-            list_tasks(showall, show_complete, vec![]);
+        Commands::List { all, complete, categories } => {
+            list_tasks(all, complete, categories);
         }
-        Some(("json", json_match)) => {
-            let pretty = json_match.get_flag("pretty");
+        Commands::Json { pretty } => {
             display_json(pretty);
         }
-        Some(("add", task_match)) => {
-            let task = task_match
-                .get_one::<String>("task")
-                .expect("Failed to read input")
-                .as_str();
-            if task_match.contains_id("categories") {
-                let categories = task_match
-                    .get_many::<String>("categories")
-                    .expect("is present")
-                    .map(|s| s.as_str())
-                    .collect::<Vec<_>>();
-                create_task(task, categories);
-                return;
-            }
-            create_task(task, vec![]);
+        Commands::Add { task, categories } => {
+            create_task(task, categories);
         }
-        Some(("completed", completed_match)) => {
-            let task_ids = completed_match
-                .get_many::<String>("task_id")
-                .expect("is present")
-                .map(|s| s.as_str())
-                .collect::<Vec<_>>();
+        Commands::Complete { task_ids } => {
             toggle_completed(task_ids);
         }
-        Some(("delete", delete_match)) => {
-            let task_ids = delete_match
-                .get_many::<String>("task_id")
-                .expect("is present")
-                .map(|s| s.as_str())
-                .collect::<Vec<_>>();
+        Commands::Delete { task_ids } => {
             delete_tasks(task_ids);
         }
-        Some(("edit", edit_match)) => {
-            let task_id = edit_match
-                .get_one::<String>("task_id")
-                .expect("Failed to read input")
-                .as_str();
-            let inp = edit_match
-                .get_one::<String>("new_text")
-                .expect("Failed to read input")
-                .as_str();
-            edit_task(task_id, inp);
+        Commands::Edit { task, description } => {
+            edit_task(task, description);
         }
-        Some(("clear", _)) => {
+        Commands::Clear {  } => {
             clear_tasks();
         }
-        Some(("get", get_match)) => {
-            let task = get_match
-                .get_one::<String>("task")
-                .expect("Failed to read input")
-                .as_str();
+        Commands::Get { task } => {
             get_task(task);
         }
         _ => {
@@ -300,7 +121,7 @@ fn display_json(pretty: bool) {
     }
 }
 
-fn list_tasks(show_all: bool, show_complete: bool, categories: Vec<&str>) {
+fn list_tasks(show_all: bool, show_complete: bool, categories: Vec<String>) {
     let json_loc = get_file();
     let json = load_json(&json_loc);
     let tasks = json["tasks"].as_array().unwrap();
@@ -317,7 +138,7 @@ fn list_tasks(show_all: bool, show_complete: bool, categories: Vec<&str>) {
             let task_categories = task["categories"].as_array().unwrap();
             let has_matching_category = task_categories
                 .iter()
-                .any(|category| category_set.contains(&category.as_str().unwrap()));
+                .any(|category| category_set.contains(&category.as_str().unwrap().to_string()));
 
             if has_matching_category {
                 if !completed && !show_complete {
@@ -340,14 +161,14 @@ fn list_tasks(show_all: bool, show_complete: bool, categories: Vec<&str>) {
     }
 }
 
-fn get_task(id: &str) {
+fn get_task(id: u64) {
     let json_loc = get_file();
     let json = load_json(&json_loc);
     let tasks = json["tasks"].as_array().unwrap();
 
     for task in tasks {
         if let Some(task_id) = task.get("id").and_then(serde_json::Value::as_u64) {
-            if task_id.to_string() == id {
+            if task_id == id {
                 show_user(task, true, true, true, true, true, true);
             }
         }
@@ -403,7 +224,7 @@ fn show_user(
     handle.flush().unwrap();
 }
 
-fn create_task(inp: &str, categories: Vec<&str>) {
+fn create_task(inp: String, categories: Vec<String>) {
     let mut json = load_json(&get_file());
     let tasks = json
         .get_mut("tasks")
@@ -425,7 +246,7 @@ fn create_task(inp: &str, categories: Vec<&str>) {
     save_json(&get_file(), &json);
 }
 
-fn toggle_completed(task_ids: Vec<&str>) {
+fn toggle_completed(task_ids: Vec<u64>) {
     let mut json = load_json(&get_file());
     let tasks = json
         .get_mut("tasks")
@@ -435,7 +256,7 @@ fn toggle_completed(task_ids: Vec<&str>) {
 
     for task in tasks.iter_mut() {
         if let Some(id) = task.get("id").and_then(serde_json::Value::as_u64) {
-            if task_ids.contains(&id.to_string().as_str()) {
+            if task_ids.contains(&id) {
                 let complete = task["completed"].as_bool().unwrap();
                 task["completed"] = serde_json::json!(!complete);
                 if !complete {
@@ -450,7 +271,7 @@ fn toggle_completed(task_ids: Vec<&str>) {
     save_json(&get_file(), &json);
 }
 
-fn delete_tasks(task_ids: Vec<&str>) {
+fn delete_tasks(task_ids: Vec<u64>) {
     let mut json = load_json(&get_file());
     let tasks = json
         .get_mut("tasks")
@@ -460,7 +281,7 @@ fn delete_tasks(task_ids: Vec<&str>) {
 
     tasks.retain(|task| {
         if let Some(id) = task.get("id").and_then(serde_json::Value::as_u64) {
-            !task_ids.contains(&id.to_string().as_str())
+            !task_ids.contains(&id)
         } else {
             true
         }
@@ -469,7 +290,7 @@ fn delete_tasks(task_ids: Vec<&str>) {
     save_json(&get_file(), &json);
 }
 
-fn edit_task(task_id: &str, inp: &str) {
+fn edit_task(task_id: u64, inp: String) {
     let mut json = load_json(&get_file());
     let tasks = json
         .get_mut("tasks")
@@ -479,7 +300,7 @@ fn edit_task(task_id: &str, inp: &str) {
 
     for task in tasks.iter_mut() {
         if let Some(id) = task.get("id").and_then(serde_json::Value::as_u64) {
-            if id.to_string() == task_id {
+            if id == task_id {
                 task["text"] = serde_json::json!(inp);
             }
         }
