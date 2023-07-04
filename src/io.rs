@@ -5,12 +5,8 @@ use std::{fs, path::PathBuf};
 use crate::tasks::Store;
 
 pub fn get_datastore_file() -> Result<PathBuf> {
-    let docs_todo = dirs::document_dir()
-        .context("document dir could not be found")?
-        .join("todo.json");
-    let local_todo = dirs::data_local_dir()
-        .context("data dir could not be found")?
-        .join("belldo/todo.json");
+    let docs_todo = dirs::document_dir().context("document dir could not be found")?.join("todo.json");
+    let local_todo = dirs::data_local_dir().context("data dir could not be found")?.join(concat!(env!("CARGO_PKG_NAME"), "/todo.json"));
 
     if docs_todo.exists() {
         Ok(docs_todo)
