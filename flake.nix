@@ -24,7 +24,7 @@
   in {
     overlays = rec {
       default = final: prev: {
-        bellado = prev.callPackage ./. {inherit naersk;};
+        bellado = prev.callPackage ./. {naersk = naersk.lib."${prev.system}";};
       };
     };
 
