@@ -1,6 +1,6 @@
-use std::{path::PathBuf, fs};
+use anyhow::{Context, Result};
 use chrono::{DateTime, Local};
-use anyhow::{Result, Context};
+use std::{fs, path::PathBuf};
 
 use crate::tasks::Store;
 
@@ -20,7 +20,9 @@ pub fn get_datastore_file() -> Result<PathBuf> {
 }
 
 pub fn create_files(path: PathBuf) -> Result<()> {
-    let prefix = path.parent().with_context(|| format!("no parent for path {}", path.display()))?;
+    let prefix = path
+        .parent()
+        .with_context(|| format!("no parent for path {}", path.display()))?;
     fs::create_dir_all(prefix)?;
     let store = Store { tasks: vec![] };
     fs::write(&path, serde_json::to_string_pretty(&store)?)?;

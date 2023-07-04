@@ -11,7 +11,7 @@ use cli::{Cli, Commands};
 
 fn main() {
     let args = Cli::parse();
-    println!("{:?}", args);
+    //println!("{:?}", args);
 
     fn handle_command(args: Cli) -> Result<()> {
         match args.command {
@@ -123,7 +123,12 @@ fn display_task(task: tasks::Task) -> Result<()> {
     write!(display_handle, "{} ", task.categories.join(", "))?;
     write!(display_handle, "{} ", task.created_at)?;
     if task.completed {
-        write!(display_handle, "{} ", task.completed_at.context("completed_at was not set but completed was true")?)?;
+        write!(
+            display_handle,
+            "{} ",
+            task.completed_at
+                .context("completed_at was not set but completed was true")?
+        )?;
     }
 
     display_handle.write_all(b"\n")?;

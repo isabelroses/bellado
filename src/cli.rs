@@ -11,7 +11,7 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     /// Create the reqired files
-    #[command(arg_required_else_help = true)]
+    #[command(arg_required_else_help = false)]
     Init {},
     /// Create a new task
     #[command(arg_required_else_help = true, short_flag = 'a')]
@@ -21,11 +21,11 @@ pub enum Commands {
         #[arg(short = 'c')]
 
         /// The category for the task you wish to create
-        #[arg(required = true)]
+        #[arg(required = false)]
         categories: Vec<String>,
     },
     /// List out tasks
-    #[command(arg_required_else_help = true, short_flag = 'l')]
+    #[command(arg_required_else_help = false, short_flag = 'l')]
     List {
         /// Show all tasks
         #[arg(short = 'a')]
@@ -37,10 +37,10 @@ pub enum Commands {
 
         /// Show tasks that match the given categories
         #[arg(short = 's', conflicts_with = "all")]
-        categories: Vec<String>
+        categories: Vec<String>,
     },
     /// Output the JSON file
-    #[command(arg_required_else_help = true, short_flag = 'j')]
+    #[command(arg_required_else_help = false, short_flag = 'j')]
     Json {
         /// Display the JSON in a pretty format
         #[arg(short = 'p')]
@@ -51,14 +51,14 @@ pub enum Commands {
     Complete {
         /// Task(s) to mark as completed
         #[arg(required = true)]
-        task_ids: Vec<u64>
+        task_ids: Vec<u64>,
     },
     /// Delete task(s)
     #[command(arg_required_else_help = true, short_flag = 'd')]
     Delete {
         /// Task(s) to delete
         #[arg(required = true)]
-        task_ids: Vec<u64>
+        task_ids: Vec<u64>,
     },
     /// Edit the description of task
     #[command(arg_required_else_help = true, short_flag = 'e')]
@@ -66,15 +66,15 @@ pub enum Commands {
         /// The ID of the task you wish to get
         task: u64,
         /// The new description
-        description: String
+        description: String,
     },
     /// Delete all tasks
-    #[command(arg_required_else_help = true, short_flag = 'C')]
-    Clear { },
+    #[command(arg_required_else_help = false, short_flag = 'C')]
+    Clear {},
     /// Get a task by ID
     #[command(arg_required_else_help = true, short_flag = 'g')]
     Get {
         /// The ID of the task you wish to edit
         task: u64,
-    }
+    },
 }
