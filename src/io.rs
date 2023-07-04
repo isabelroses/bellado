@@ -1,12 +1,16 @@
-use std::{path::PathBuf, fs};
+use anyhow::{Context, Result};
 use chrono::{DateTime, Local};
-use anyhow::{Result, Context};
+use std::{fs, path::PathBuf};
 
 use crate::tasks::Store;
 
 pub fn get_datastore_file() -> Result<PathBuf> {
-    let docs_todo = dirs::document_dir().context("document dir could not be found")?.join("todo.json");
-    let local_todo = dirs::data_local_dir().context("data dir could not be found")?.join("belldo/todo.json");
+    let docs_todo = dirs::document_dir()
+        .context("document dir could not be found")?
+        .join("todo.json");
+    let local_todo = dirs::data_local_dir()
+        .context("data dir could not be found")?
+        .join("belldo/todo.json");
 
     if docs_todo.exists() {
         Ok(docs_todo)
@@ -20,7 +24,9 @@ pub fn get_datastore_file() -> Result<PathBuf> {
 }
 
 pub fn create_files(path: PathBuf) -> Result<()> {
-    let prefix = path.parent().with_context(|| format!("no parent for path {}", path.display()))?;
+    let prefix = path
+        .parent()
+        .with_context(|| format!("no parent for path {}", path.display()))?;
     fs::create_dir_all(prefix)?;
     let store = Store { tasks: vec![] };
     fs::write(&path, serde_json::to_string_pretty(&store)?)?;
