@@ -28,7 +28,7 @@ fn main() {
 
                 let local_todo = dirs::data_local_dir()
                     .context("data dir could not be found")?
-                    .join("belldo/todo.json");
+                    .join(concat!(env!("CARGO_PKG_NAME"), "/todo.json"));
 
                 println!("Where would you like to save the todo file");
                 println!("(1) {}", docs_todo.display());
