@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
-use clap::Parser;
+use clap::{Parser, CommandFactory};
+use clap_complete::generate;
 use dirs;
 use serde_json;
 use std::io::{stdout, BufWriter, Write};
@@ -65,6 +66,14 @@ fn main() {
                     println!("No task found with ID {task}");
                 }
             }
+            Commands::Completions { shell } => {
+                // Generate the completions and exit immediately
+                let mut cmd = Cli::command();
+                let name = cmd.get_name().to_string();
+                eprintln!("Generating completions for {shell}");
+                generate(shell, &mut cmd, name, &mut std::io::stdout());
+                std::process::exit(0);
+            },
         }
 
         Ok(())

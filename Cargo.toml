@@ -8,13 +8,19 @@ authors = ["Isabel Roses <isabel@isabelroses.com>"]
 readme = "README.md"
 homepage = "https://github.com/isabelroses/bellado"
 repository = "https://github.com/isabelroses/bellado"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 chrono = "0.4.26"
-clap = { version = "4.3.9", features = [ "derive" ] }
+clap = { version = "4.3.9", features = ["derive"] }
+clap_complete = "4.3.2"
 dirs = "5.0.1"
 serde_json = "1.0.99"
-serde = { version =  "1.0.99", features = [ "derive" ] }
+serde = { version = "1.0.99", features = ["derive"] }
 anyhow = "1.0.71"
+
+[build-dependencies]
+clap = { version = "4.3.9", features = ["derive"] }
+clap_complete = "4.3.2"

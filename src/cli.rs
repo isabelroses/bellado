@@ -1,8 +1,9 @@
 use clap::{Parser, Subcommand};
+use clap_complete::Shell;
 
 #[derive(Debug, Parser)]
 #[command(name = "bellado")]
-#[command(about = "A fast and simple cli todo tool", long_about = None, arg_required_else_help = true)]
+#[command(about, long_about = None, version, author)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -76,5 +77,11 @@ pub enum Commands {
     Get {
         /// The ID of the task you wish to edit
         task: u64,
+    },
+    /// Create completion files for bellado
+    #[command(arg_required_else_help = true)]
+    Completions {
+        /// The shell that you wish to make the commands for
+        shell: Shell
     },
 }
