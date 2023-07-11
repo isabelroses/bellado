@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use dirs;
 use serde_json;
-use std::io::{stdin, stdout, BufWriter, Write};
+use std::io::{stdout, BufWriter, Write};
 
 mod cli;
 mod io;
@@ -16,39 +16,11 @@ fn main() {
     fn handle_command(args: Cli) -> Result<()> {
         match args.command {
             Commands::Init {} => {
-                let datastore_file = io::get_datastore_file()?;
-                if datastore_file.exists() {
-                    eprint!("Data file {} already exists", datastore_file.display());
-                    return Ok(());
-                }
-
-                let docs_todo = dirs::document_dir()
-                    .context("document dir could not be found")?
-                    .join("todo.json");
-
                 let local_todo = dirs::data_local_dir()
                     .context("data dir could not be found")?
                     .join(concat!(env!("CARGO_PKG_NAME"), "/todo.json"));
 
-                println!("Where would you like to save the todo file");
-                println!("(1) {}", docs_todo.display());
-                println!("(2) {}", local_todo.display());
-
-                let mut inp = String::new();
-                stdin()
-                    .read_line(&mut inp)
-                    .context("could not read line from stdin")?;
-
-                let location_choice = inp
-                    .trim()
-                    .parse::<i32>()
-                    .context("input was not a number")?;
-
-                match location_choice {
-                    1 => io::create_files(docs_todo)?,
-                    2 => io::create_files(local_todo)?,
-                    _ => println!("Error: not an option"),
-                };
+                io::create_files(local_todo)?;
             }
             Commands::List {
                 all,

@@ -18,7 +18,7 @@ pub enum Commands {
     Add {
         /// The task you wish to create
         task: String,
-        #[arg(short = 'c')]
+        #[arg(short = 'c', num_args = 1..)]
 
         /// The category for the task you wish to create
         #[arg(required = false)]
@@ -36,7 +36,7 @@ pub enum Commands {
         complete: bool,
 
         /// Show tasks that match the given categories
-        #[arg(short = 's', conflicts_with = "all")]
+        #[arg(short = 's', conflicts_with = "all", num_args = 1..)]
         categories: Vec<String>,
     },
     /// Output the JSON file

@@ -16,18 +16,13 @@ pub struct Task {
     pub completed: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Store {
-    pub tasks: Vec<Task>,
-}
-
-pub fn load(path: &Path) -> Result<Store> {
+pub fn load(path: &Path) -> Result<Vec<Task>> {
     let file = File::open(&path).context("fs failed to read the file")?;
     let reader = BufReader::new(file);
     serde_json::from_reader(reader).context("serde_json failed to read from the file")
 }
 
-pub fn save(filename: &Path, store: Store) -> Result<()> {
+pub fn save(filename: &Path, store: Vec<Task>) -> Result<()> {
     let file = File::create(filename)
         .with_context(|| format!("fs failed to create file {}", filename.display()))?;
     let writer = std::io::BufWriter::new(file);
@@ -38,7 +33,6 @@ pub fn get(id: u64) -> Result<Option<Task>> {
     let store = load(&io::get_datastore_file()?)?;
 
     let task = store
-        .tasks
         .iter()
         .filter(|t| t.id == id)
         .collect::<Vec<&Task>>()
@@ -53,12 +47,11 @@ pub fn get_all(show_all: bool, show_complete: bool, categories: Vec<String>) -> 
     let store = load(&io::get_datastore_file()?)?;
 
     if show_all {
-        return Ok(store.tasks.clone());
+        return Ok(store.clone());
     }
 
     if show_complete {
         return Ok(store
-            .tasks
             .iter()
             .filter(|t| t.completed)
             .map(|t| t.clone())
@@ -67,7 +60,6 @@ pub fn get_all(show_all: bool, show_complete: bool, categories: Vec<String>) -> 
 
     if categories.is_empty() {
         return Ok(store
-            .tasks
             .iter()
             .filter(|t| !t.completed)
             .map(|t| t.clone())
@@ -77,7 +69,6 @@ pub fn get_all(show_all: bool, show_complete: bool, categories: Vec<String>) -> 
     let category_set: HashSet<String> = categories.into_iter().collect();
 
     let filtered_tasks = store
-        .tasks
         .iter()
         .filter(|t| t.categories.iter().any(|c| category_set.contains(c)))
         .map(|t| t.clone())
@@ -88,8 +79,8 @@ pub fn get_all(show_all: bool, show_complete: bool, categories: Vec<String>) -> 
 
 pub fn create(text: String, categories: Vec<String>) -> Result<()> {
     let mut store = load(&io::get_datastore_file()?)?;
-    store.tasks.sort_by(|a, b| a.id.cmp(&b.id));
-    let next_id = store.tasks.last().map_or(0, |task| task.id) + 1;
+    store.sort_by(|a, b| a.id.cmp(&b.id));
+    let next_id = store.last().map_or(0, |task| task.id) + 1;
 
     let task = Task {
         id: next_id,
@@ -100,14 +91,14 @@ pub fn create(text: String, categories: Vec<String>) -> Result<()> {
         completed: false,
     };
 
-    store.tasks.push(task);
+    store.push(task);
 
     save(&io::get_datastore_file()?, store)
 }
 
 pub fn edit(task_id: u64, inp: String) -> Result<Option<Task>> {
     let mut store = load(&io::get_datastore_file()?)?;
-    let task = store.tasks.iter_mut().find(|t| t.id == task_id);
+    let task = store.iter_mut().find(|t| t.id == task_id);
 
     if let Some(mut task) = task {
         task.text = inp;
@@ -122,20 +113,20 @@ pub fn edit(task_id: u64, inp: String) -> Result<Option<Task>> {
 }
 
 pub fn reset() -> Result<()> {
-    save(&io::get_datastore_file()?, Store { tasks: vec![] })
+    save(&io::get_datastore_file()?, vec![] )
 }
 
 pub fn delete(task_ids: Vec<u64>) -> Result<()> {
     let mut store = load(&io::get_datastore_file()?)?;
 
-    store.tasks.retain(|task| !task_ids.contains(&task.id));
+    store.retain(|task| !task_ids.contains(&task.id));
 
     save(&io::get_datastore_file()?, store)
 }
 
 pub fn toggle_completion(id: u64) -> Result<()> {
     let mut store = load(&io::get_datastore_file()?)?;
-    let task = store.tasks.iter_mut().find(|t| t.id == id);
+    let task = store.iter_mut().find(|t| t.id == id);
 
     if let Some(task) = task {
         if task.completed {
