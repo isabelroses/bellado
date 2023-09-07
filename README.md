@@ -3,6 +3,18 @@
 ## About
 A fast and simple to-do list manager written in rust
 
+## Install
+
+```bash
+# arch
+paru -S bellado-git
+
+# nix
+nix profile install github:isabelroses/bellado
+nix run github:isabelroses/bellado
+```
+
+
 ## Usage
 `bellado [COMMAND]`
 
