@@ -100,7 +100,7 @@ pub fn edit(task_id: u64, inp: String) -> Result<Option<Task>> {
     let mut store = load(&io::get_datastore_file()?)?;
     let task = store.iter_mut().find(|t| t.id == task_id);
 
-    if let Some(mut task) = task {
+    if let Some(task) = task {
         task.text = inp;
 
         let task = task.clone();
