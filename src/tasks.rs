@@ -113,7 +113,7 @@ pub fn edit(task_id: u64, inp: String) -> Result<Option<Task>> {
 }
 
 pub fn reset() -> Result<()> {
-    save(&io::get_datastore_file()?, vec![] )
+    save(&io::get_datastore_file()?, vec![])
 }
 
 pub fn delete(task_ids: Vec<u64>) -> Result<()> {

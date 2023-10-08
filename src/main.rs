@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
-use clap::{Parser, CommandFactory};
+use clap::{CommandFactory, Parser};
 use clap_complete::generate;
-use dirs;
 use serde_json;
 use std::io::{stdout, BufWriter, Write};
 
 mod cli;
+mod git;
 mod io;
 mod tasks;
 use cli::{Cli, Commands};
@@ -16,12 +16,30 @@ fn main() {
 
     fn handle_command(args: Cli) -> Result<()> {
         match args.command {
-            Commands::Init {} => {
-                let local_todo = dirs::data_local_dir()
-                    .context("data dir could not be found")?
-                    .join(concat!(env!("CARGO_PKG_NAME"), "/todo.json"));
+            Commands::Init { git_bk } => {
+                io::create_files()?;
 
-                io::create_files(local_todo)?;
+                if git_bk {
+                    git::init();
+                }
+            }
+            Commands::Import { users_repo } => {
+                git::clone_repo(users_repo);
+            }
+            Commands::Git {
+                git_init,
+                git_push,
+                git_pull,
+            } => {
+                if git_init {
+                    git::init();
+                }
+                if git_push {
+                    git::push();
+                }
+                if git_pull {
+                    git::pull();
+                }
             }
             Commands::List {
                 all,
@@ -73,7 +91,7 @@ fn main() {
                 eprintln!("Generating completions for {shell}");
                 generate(shell, &mut cmd, name, &mut std::io::stdout());
                 std::process::exit(0);
-            },
+            }
         }
 
         Ok(())

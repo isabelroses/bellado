@@ -13,7 +13,29 @@ pub struct Cli {
 pub enum Commands {
     /// Create the reqired files
     #[command(arg_required_else_help = false)]
-    Init {},
+    Init {
+        /// Initialize a git repo
+        #[arg(short = 'g')]
+        git_bk: bool,
+    },
+    #[command(arg_required_else_help = true)]
+    Import {
+        /// Bring your own todo git repo
+        #[arg(required = true)]
+        users_repo: String,
+    },
+    #[command(arg_required_else_help = true, short_flag = 'g')]
+    Git {
+        /// Initialize a git repo
+        #[arg(short = 'i', conflicts_with = "git_push")]
+        git_init: bool,
+        /// Push the changes
+        #[arg(short = 'p', conflicts_with = "git_pull")]
+        git_push: bool,
+        ///Pull the changes
+        #[arg(short = 'P', conflicts_with = "git_push")]
+        git_pull: bool,
+    },
     /// Create a new task
     #[command(arg_required_else_help = true, short_flag = 'a')]
     Add {
@@ -22,7 +44,7 @@ pub enum Commands {
         #[arg(short = 'c', num_args = 1..)]
 
         /// The category for the task you wish to create
-        #[arg(required = false)]
+        #[arg(required = false, short = 'c', num_args = 1..)]
         categories: Vec<String>,
     },
     /// List out tasks
@@ -73,7 +95,7 @@ pub enum Commands {
     #[command(arg_required_else_help = false, short_flag = 'C')]
     Clear {},
     /// Get a task by ID
-    #[command(arg_required_else_help = true, short_flag = 'g')]
+    #[command(arg_required_else_help = true, short_flag = 'G')]
     Get {
         /// The ID of the task you wish to edit
         task: u64,
@@ -82,6 +104,6 @@ pub enum Commands {
     #[command(arg_required_else_help = true)]
     Completions {
         /// The shell that you wish to make the commands for
-        shell: Shell
+        shell: Shell,
     },
 }

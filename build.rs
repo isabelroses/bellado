@@ -1,6 +1,6 @@
-use clap_complete::generate_to;
-use std::{process, env, fs};
 use clap::CommandFactory;
+use clap_complete::generate_to;
+use std::{env, fs, process};
 
 include!("src/cli.rs");
 
@@ -10,8 +10,8 @@ fn main() {
         None => {
             eprintln!(
                 "OUT_DIR environment variable not defined. \
-                 Please file a bug: \
-                 https://github.com/isabelroses/bellado/issues/new"
+                Please file a bug: \
+                https://github.com/isabelroses/bellado/issues/new"
             );
             process::exit(1);
         }
