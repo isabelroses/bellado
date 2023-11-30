@@ -1,7 +1,7 @@
 self: { config, lib, pkgs, ... }: let
   inherit (lib) mkIf mkEnableOption mkOption types escapeShellArgs;
 in {
-  meta.maintainers = [ maintainers.isabelroses ];
+  meta.maintainers = [ lib.maintainers.isabelroses ];
 
   options.programs.bellado = {
     enable = mkEnableOption "A fast and once simple cli todo tool";
