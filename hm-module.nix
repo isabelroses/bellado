@@ -1,5 +1,5 @@
 self: { config, lib, pkgs, ... }: let
-  inherit (lib) mkIf mkEnableOption mkOption types escapeShellArgs;
+  inherit (lib) mkIf mkEnableOption mkOption types escapeShellArgs optionalAttrs;
 in {
   meta.maintainers = [ lib.maintainers.isabelroses ];
 
