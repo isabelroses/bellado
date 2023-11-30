@@ -32,7 +32,7 @@ in {
       bellc = "bellado -lc";
     };
   in mkIf cfg.enable {
-    home.packages = [ pkgs.bellado ];
+    home.packages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 
     programs.bash.shellAliases = aliases;
 
