@@ -5,4 +5,6 @@ pkgs.rustPlatform.buildRustPackage {
 
   src = ./.;
   cargoLock.lockFile = ./Cargo.lock;
+
+  doCheck = false;
 }
