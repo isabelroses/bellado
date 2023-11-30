@@ -3,7 +3,8 @@ use clap_complete::Shell;
 
 #[derive(Debug, Parser)]
 #[command(name = "bellado")]
-#[command(about, long_about = None, version, author)]
+#[command(about, long_about = None, version, author, arg_required_else_help = true)]
+
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -57,6 +58,10 @@ pub enum Commands {
         /// Show completed tasks
         #[arg(short = 'c', conflicts_with = "all")]
         complete: bool,
+
+        /// Show the table header
+        #[arg(long = "header")]
+        header: bool,
 
         /// Show tasks that match the given categories
         #[arg(short = 's', conflicts_with = "all", num_args = 1..)]
