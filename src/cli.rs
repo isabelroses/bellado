@@ -60,7 +60,7 @@ pub enum Commands {
         complete: bool,
 
         /// Show the table header
-        #[arg(long = "header")]
+        #[arg(long = "header", default_value_t = true)]
         header: bool,
 
         /// Show tasks that match the given categories
