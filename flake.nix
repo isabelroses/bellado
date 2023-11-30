@@ -14,5 +14,7 @@
     devShells = forAllSystems (system: {
       default = pkgsForEach.${system}.callPackage ./shell.nix {};
     });
+
+    homeManagerModules.default = import ./hm-module.nix { self };
   };
 }
