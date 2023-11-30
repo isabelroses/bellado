@@ -1,5 +1,6 @@
 result
 /target
 /.vscode
+/.idea
 .direnv/
 .envrc
