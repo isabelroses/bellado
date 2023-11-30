@@ -1,8 +1,8 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{CommandFactory, Parser};
 use clap_complete::generate;
+use prettytable::{format, row, Cell, Row, Table};
 use serde_json;
-use std::io::{stdout, BufWriter, Write};
 
 mod cli;
 mod git;
@@ -44,12 +44,11 @@ fn main() {
             Commands::List {
                 all,
                 complete,
+                header,
                 categories,
             } => {
                 let tasks = tasks::get_all(all, complete, categories)?;
-                for task in tasks {
-                    display_task(task)?;
-                }
+                display_tasks(tasks, header)?;
             }
             Commands::Json { pretty } => {
                 let store = &tasks::load(&io::get_datastore_file()?)?;
@@ -78,8 +77,12 @@ fn main() {
             }
             Commands::Get { task } => {
                 let fetched_task = tasks::get(task)?;
+
                 if let Some(task) = fetched_task {
-                    display_task(task)?;
+                    let mut table = Table::new();
+                    table.set_format(format::FormatBuilder::new().padding(1, 1).build());
+                    add_task(task, &mut table)?;
+                    table.printstd();
                 } else {
                     println!("No task found with ID {task}");
                 }
@@ -108,30 +111,42 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-fn display_task(task: tasks::Task) -> Result<()> {
-    let stdout = stdout();
-    let mut display_handle = BufWriter::new(stdout);
+fn display_tasks(tasks: Vec<tasks::Task>, header: bool) -> Result<()> {
+    let mut table = Table::new();
 
-    if task.completed {
-        write!(display_handle, "✓ ")?;
-    } else {
-        write!(display_handle, "✗ ")?;
-    }
-    write!(display_handle, "{} ", task.id)?;
-    write!(display_handle, "{} ", task.text)?;
-    write!(display_handle, "{} ", task.categories.join(", "))?;
-    write!(display_handle, "{} ", task.created_at)?;
-    if task.completed {
-        write!(
-            display_handle,
-            "{} ",
-            task.completed_at
-                .context("completed_at was not set but completed was true")?
-        )?;
+    table.set_format(format::FormatBuilder::new().padding(1, 1).build());
+
+    if header {
+        table.set_titles(row![
+            "ID",
+            "Task",
+            "Categories",
+            "Created At",
+            "Completed At",
+            "Completed"
+        ]);
     }
 
-    display_handle.write_all(b"\n")?;
-    display_handle.flush()?;
+    for task in tasks {
+        add_task(task, &mut table)?;
+    }
+
+    // Print the table to stdout
+    table.printstd();
+
+    Ok(())
+}
+
+fn add_task(task: tasks::Task, table: &mut Table) -> Result<()> {
+    let categories = task.categories.join(", ");
+    table.add_row(Row::new(vec![
+        Cell::new(&task.id.to_string()),
+        Cell::new(&task.text),
+        Cell::new(&categories),
+        Cell::new(&task.created_at),
+        Cell::new(&task.completed_at.unwrap_or_else(|| "".to_string())),
+        Cell::new(if task.completed { "✓" } else { "✗" }),
+    ]));
 
     Ok(())
 }
