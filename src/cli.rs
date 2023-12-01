@@ -60,8 +60,12 @@ pub enum Commands {
         complete: bool,
 
         /// Show the table header
-        #[arg(long = "header", default_value_t = true)]
+        #[arg(long = "header")]
         header: bool,
+
+        /// Format the output as a table
+        #[arg(long = "table", short = 't')]
+        as_table: bool,
 
         /// Show tasks that match the given categories
         #[arg(short = 's', conflicts_with = "all", num_args = 1..)]
@@ -103,7 +107,16 @@ pub enum Commands {
     #[command(arg_required_else_help = true, short_flag = 'G')]
     Get {
         /// The ID of the task you wish to edit
+        #[arg(required = true)]
         task: u64,
+
+        /// Format the output as a table
+        #[arg(short = 't', long = "table")]
+        as_table: bool,
+
+        /// Show the table header
+        #[arg(long = "header")]
+        header: bool,
     },
     /// Create completion files for bellado
     #[command(arg_required_else_help = true)]
