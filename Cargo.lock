@@ -86,6 +86,7 @@ dependencies = [
  "clap",
  "clap_complete",
  "dirs",
+ "lazy_static",
  "prettytable",
  "serde",
  "serde_json",
