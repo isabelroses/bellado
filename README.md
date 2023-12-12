@@ -25,33 +25,33 @@ nix run github:isabelroses/bellado
 
 ```nix
 {
-    inputs = {
-        nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-        home-manager = {
-            url = "github:nix-community/home-manager";
-            inputs.nixpkgs.follows = "nixpkgs";
-        };
-
-        bellado.url = "github:isabelroses/bellado";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    outputs = { self, nixpkgs, bellado }: {
-        homeConfigurations."user@hostname" = home-manager.lib.homeManagerConfiguration {
-            pkgs = nixpkgs.legacyPackages.x86_64-linux;
+    bellado.url = "github:isabelroses/bellado";
+  };
 
-            modules = [
-                bellado.homeManagerModules.default
-                {
-                    programs.bellado = {
-                        enable = true;
-                        enableAliases = true;
-                    };
-                }
-                # ...
-            ];
-        };
-    }
+  outputs = { self, nixpkgs, bellado }: {
+    homeConfigurations."user@hostname" = home-manager.lib.homeManagerConfiguration {
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+
+      modules = [
+        bellado.homeManagerModules.default
+        {
+          programs.bellado = {
+            enable = true;
+            enableAliases = true;
+          };
+        }
+        # ...
+      ];
+    };
+  }
 }
 ```
 
@@ -60,10 +60,10 @@ For more information see [here](https://app.cachix.org/cache/isabelroses)
 
 ```nix
 {
-    nix.settings = {
-        substituters = [ "https://isabelroses.cachix.org" ];
-        trusted-public-keys = [ "isabelroses.cachix.org-1:mXdV/CMcPDaiTmkQ7/4+MzChpOe6Cb97njKmBQQmLPM=" ];
-    };
+  nix.settings = {
+    substituters = [ "https://isabelroses.cachix.org" ];
+    trusted-public-keys = [ "isabelroses.cachix.org-1:mXdV/CMcPDaiTmkQ7/4+MzChpOe6Cb97njKmBQQmLPM=" ];
+  };
 }
 ```
 
