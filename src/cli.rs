@@ -72,25 +72,33 @@ pub enum Commands {
         categories: Vec<String>,
     },
     /// Export the JSON file, in diffrent formats
-    #[command(arg_required_else_help = false)]
+    #[command(arg_required_else_help = false, long_flag = "export", short_flag = 'x')]
     Export {
-        /// Display the JSON in a pretty format
-        #[arg(short, long, group = "json_group", conflicts_with = "markdown")]
-        json: bool,
-
-        /// Display the JSON in a pretty format
-        #[arg(short, group = "json_group", conflicts_with = "markdown")]
-        pretty: bool,
-
-        /// Display the JSON in a pretty format
+        /// Export as JSON
         #[arg(
             short,
             long,
-            conflicts_with = "json",
-            conflicts_with = "pretty",
-            group = "markdown_group"
+            conflicts_with = "markdown",
+            conflicts_with = "with_categories"
         )]
+        json: bool,
+
+        /// Export as JSON in a pretty format
+        #[arg(short, conflicts_with = "markdown", conflicts_with = "with_categories")]
+        pretty: bool,
+
+        /// Export as Markdown
+        #[arg(short, long, conflicts_with = "json", conflicts_with = "pretty")]
         markdown: bool,
+
+        /// Export as Markdown with categories
+        #[arg(
+            short = 'c',
+            long = "categories",
+            conflicts_with = "json",
+            conflicts_with = "pretty"
+        )]
+        with_categories: bool,
     },
     /// Mark task(s) as completed
     #[command(arg_required_else_help = true, short_flag = 'c')]

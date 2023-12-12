@@ -141,6 +141,24 @@ pub fn toggle_completion(id: u64) -> Result<()> {
     }
 }
 
+pub fn to_markdown(store: &Vec<Task>, with_categories: bool) -> Result<String> {
+    let mut markdown = String::new();
+
+    for task in store {
+        markdown.push_str(&format!(
+            "- [{}] {}",
+            if task.completed { "x" } else { " " },
+            task.text
+        ));
+        if !task.categories.is_empty() && with_categories {
+            markdown.push_str(&format!(" #{}", task.categories.join(" #").to_lowercase()));
+        }
+        markdown.push_str("\n");
+    }
+
+    Ok(markdown)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

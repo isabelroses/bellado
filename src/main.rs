@@ -48,11 +48,19 @@ fn main() {
                 let tasks = tasks::get_all(all, complete, categories)?;
                 display_tasks(tasks, header, as_table)?;
             }
-            Commands::Json { pretty } => {
+            Commands::Export {
+                json,
+                pretty,
+                markdown,
+                with_categories,
+            } => {
                 let store = &tasks::load(&io::get_datastore_file()?)?;
-                if pretty {
+                if json && pretty {
                     println!("{}", serde_json::to_string_pretty(store)?);
+                } else if markdown {
+                    println!("{}", tasks::to_markdown(store, with_categories)?);
                 } else {
+                    // we default to json export since its non intensive
                     println!("{}", serde_json::to_string(store)?);
                 }
             }
