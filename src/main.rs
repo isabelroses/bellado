@@ -17,28 +17,24 @@ fn main() {
 
     fn handle_command(args: Cli) -> Result<()> {
         match args.command {
-            Commands::Init { git_bk } => {
+            Commands::Init { git } => {
                 io::create_files()?;
 
-                if git_bk {
+                if git {
                     git::init();
                 }
             }
             Commands::Import { users_repo } => {
                 git::clone_repo(users_repo);
             }
-            Commands::Git {
-                git_init,
-                git_push,
-                git_pull,
-            } => {
-                if git_init {
+            Commands::Git { init, push, pull } => {
+                if init {
                     git::init();
                 }
-                if git_push {
+                if push {
                     git::push();
                 }
-                if git_pull {
+                if pull {
                     git::pull();
                 }
             }

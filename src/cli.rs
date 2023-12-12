@@ -16,8 +16,8 @@ pub enum Commands {
     #[command(arg_required_else_help = false)]
     Init {
         /// Initialize a git repo
-        #[arg(short = 'g')]
-        git_bk: bool,
+        #[arg(short, long)]
+        git: bool,
     },
     #[command(arg_required_else_help = true)]
     Import {
@@ -28,39 +28,39 @@ pub enum Commands {
     #[command(arg_required_else_help = true, short_flag = 'g')]
     Git {
         /// Initialize a git repo
-        #[arg(short = 'i', conflicts_with = "git_push")]
-        git_init: bool,
+        #[arg(short, long, conflicts_with = "push")]
+        init: bool,
         /// Push the changes
-        #[arg(short = 'p', conflicts_with = "git_pull")]
-        git_push: bool,
+        #[arg(short, long, conflicts_with = "pull")]
+        push: bool,
         ///Pull the changes
-        #[arg(short = 'P', conflicts_with = "git_push")]
-        git_pull: bool,
+        #[arg(short = 'P', long, conflicts_with = "push")]
+        pull: bool,
     },
     /// Create a new task
     #[command(arg_required_else_help = true, short_flag = 'a')]
     Add {
         /// The task you wish to create
+        #[arg(required = true)]
         task: String,
-        #[arg(short = 'c', num_args = 1..)]
 
         /// The category for the task you wish to create
-        #[arg(required = false, short = 'c', num_args = 1..)]
+        #[arg(required = false, short, num_args = 1..)]
         categories: Vec<String>,
     },
     /// List out tasks
     #[command(arg_required_else_help = false, short_flag = 'l')]
     List {
         /// Show all tasks
-        #[arg(short = 'a')]
+        #[arg(short, long)]
         all: bool,
 
         /// Show completed tasks
-        #[arg(short = 'c', conflicts_with = "all")]
+        #[arg(short, conflicts_with = "all")]
         complete: bool,
 
         /// Show the table header
-        #[arg(long = "header")]
+        #[arg(long)]
         header: bool,
 
         /// Format the output as a table
@@ -71,12 +71,26 @@ pub enum Commands {
         #[arg(short = 's', conflicts_with = "all", num_args = 1..)]
         categories: Vec<String>,
     },
-    /// Output the JSON file
-    #[command(arg_required_else_help = false, short_flag = 'j')]
-    Json {
+    /// Export the JSON file, in diffrent formats
+    #[command(arg_required_else_help = false)]
+    Export {
         /// Display the JSON in a pretty format
-        #[arg(short = 'p')]
+        #[arg(short, long, group = "json_group", conflicts_with = "markdown")]
+        json: bool,
+
+        /// Display the JSON in a pretty format
+        #[arg(short, group = "json_group", conflicts_with = "markdown")]
         pretty: bool,
+
+        /// Display the JSON in a pretty format
+        #[arg(
+            short,
+            long,
+            conflicts_with = "json",
+            conflicts_with = "pretty",
+            group = "markdown_group"
+        )]
+        markdown: bool,
     },
     /// Mark task(s) as completed
     #[command(arg_required_else_help = true, short_flag = 'c')]
@@ -115,7 +129,7 @@ pub enum Commands {
         as_table: bool,
 
         /// Show the table header
-        #[arg(long = "header")]
+        #[arg(long)]
         header: bool,
     },
     /// Create completion files for bellado
