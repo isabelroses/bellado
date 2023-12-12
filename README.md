@@ -54,6 +54,26 @@ nix run github:isabelroses/bellado
     }
 }
 ```
+
+Don't forget you can use my cachix cache, see below for an example configuration
+For more information see [here](https://app.cachix.org/cache/isabelroses)
+
+```nix
+{
+    nix.settings = {
+        substituters = [ "https://isabelroses.cachix.org" ];
+        trusted-public-keys = [ "isabelroses.cachix.org-1:mXdV/CMcPDaiTmkQ7/4+MzChpOe6Cb97njKmBQQmLPM=" ];
+    };
+}
+```
+
+
+### Build from source
+
+```bash
+cargo build --release --bin=bellado
+```
+
 </details>
 
 ## Usage
