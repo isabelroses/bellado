@@ -28,13 +28,13 @@ pub enum Commands {
     #[command(arg_required_else_help = true, short_flag = 'g')]
     Git {
         /// Initialize a git repo
-        #[arg(short, long, conflicts_with = "push")]
+        #[arg(short, long, conflicts_with = "push", conflicts_with = "pull")]
         init: bool,
         /// Push the changes
-        #[arg(short, long, conflicts_with = "pull")]
+        #[arg(short, long, conflicts_with = "pull", conflicts_with = "init")]
         push: bool,
         ///Pull the changes
-        #[arg(short = 'P', long, conflicts_with = "push")]
+        #[arg(short = 'P', long, conflicts_with = "push", conflicts_with = "init")]
         pull: bool,
     },
     /// Create a new task
