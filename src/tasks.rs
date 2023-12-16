@@ -6,7 +6,7 @@ use crate::io;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Task {
     pub id: u64,
     pub text: String,
@@ -82,7 +82,7 @@ pub fn create(text: String, categories: Vec<String>) -> Result<()> {
     store.sort_by(|a, b| a.id.cmp(&b.id));
     let next_id = store.last().map_or(0, |task| task.id) + 1;
 
-    let task = Task {
+    let task: Task = Task {
         id: next_id,
         text,
         categories,
@@ -119,7 +119,7 @@ pub fn reset() -> Result<()> {
 pub fn delete(task_ids: Vec<u64>) -> Result<()> {
     let mut store = load(&io::get_datastore_file()?)?;
 
-    store.retain(|task| !task_ids.contains(&task.id));
+    store.retain(|task: &Task| !task_ids.contains(&task.id));
 
     save(&io::get_datastore_file()?, store)
 }
@@ -138,5 +138,56 @@ pub fn toggle_completion(id: u64) -> Result<()> {
         save(&io::get_datastore_file()?, store)
     } else {
         Ok(())
+    }
+}
+
+pub fn to_markdown(store: &Vec<Task>, with_categories: bool) -> Result<String> {
+    let mut markdown = String::new();
+
+    for task in store {
+        markdown.push_str(&format!(
+            "- [{}] {}",
+            if task.completed { "x" } else { " " },
+            task.text
+        ));
+        if !task.categories.is_empty() && with_categories {
+            markdown.push_str(&format!(" #{}", task.categories.join(" #").to_lowercase()));
+        }
+        markdown.push_str("\n");
+    }
+
+    Ok(markdown)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_all_show_all() {
+        let tasks = vec![
+            Task {
+                id: 1,
+                text: "Task 1".to_string(),
+                categories: vec!["Category 1".to_string()],
+                created_at: "2022-01-01".to_string(),
+                completed_at: None,
+                completed: false,
+            },
+            Task {
+                id: 2,
+                text: "Task 2".to_string(),
+                categories: vec!["Category 2".to_string()],
+                created_at: "2022-01-02".to_string(),
+                completed_at: None,
+                completed: false,
+            },
+        ];
+
+        assert_eq!(
+            get_all(false, false, vec![]).unwrap(),
+            tasks.clone(),
+            "get_all should return incomplete tasks when no categories are specified"
+        );
     }
 }

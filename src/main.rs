@@ -1,14 +1,15 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{CommandFactory, Parser};
 use clap_complete::generate;
+use prettytable::{format, Cell, Row, Table};
 use serde_json;
-use std::io::{stdout, BufWriter, Write};
 
 mod cli;
 mod git;
 mod io;
 mod tasks;
 use cli::{Cli, Commands};
+mod constants;
 
 fn main() {
     let args = Cli::parse();
@@ -16,46 +17,50 @@ fn main() {
 
     fn handle_command(args: Cli) -> Result<()> {
         match args.command {
-            Commands::Init { git_bk } => {
+            Commands::Init { git } => {
                 io::create_files()?;
 
-                if git_bk {
+                if git {
                     git::init();
                 }
             }
             Commands::Import { users_repo } => {
                 git::clone_repo(users_repo);
             }
-            Commands::Git {
-                git_init,
-                git_push,
-                git_pull,
-            } => {
-                if git_init {
+            Commands::Git { init, push, pull } => {
+                if init {
                     git::init();
                 }
-                if git_push {
+                if push {
                     git::push();
                 }
-                if git_pull {
+                if pull {
                     git::pull();
                 }
             }
             Commands::List {
                 all,
                 complete,
+                header,
+                as_table,
                 categories,
             } => {
                 let tasks = tasks::get_all(all, complete, categories)?;
-                for task in tasks {
-                    display_task(task)?;
-                }
+                display_tasks(tasks, header, as_table)?;
             }
-            Commands::Json { pretty } => {
+            Commands::Export {
+                json,
+                pretty,
+                markdown,
+                with_categories,
+            } => {
                 let store = &tasks::load(&io::get_datastore_file()?)?;
-                if pretty {
+                if json && pretty {
                     println!("{}", serde_json::to_string_pretty(store)?);
+                } else if markdown {
+                    println!("{}", tasks::to_markdown(store, with_categories)?);
                 } else {
+                    // we default to json export since its non intensive
                     println!("{}", serde_json::to_string(store)?);
                 }
             }
@@ -76,10 +81,15 @@ fn main() {
             Commands::Clear {} => {
                 tasks::reset()?;
             }
-            Commands::Get { task } => {
+            Commands::Get {
+                task,
+                as_table,
+                header,
+            } => {
                 let fetched_task = tasks::get(task)?;
+
                 if let Some(task) = fetched_task {
-                    display_task(task)?;
+                    display_tasks(vec![task], header, as_table)?;
                 } else {
                     println!("No task found with ID {task}");
                 }
@@ -108,30 +118,34 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-fn display_task(task: tasks::Task) -> Result<()> {
-    let stdout = stdout();
-    let mut display_handle = BufWriter::new(stdout);
+fn display_tasks(tasks: Vec<tasks::Task>, header: bool, as_table: bool) -> Result<()> {
+    let mut table = Table::new();
 
-    if task.completed {
-        write!(display_handle, "✓ ")?;
+    if as_table {
+        table.set_format(*format::consts::FORMAT_BOX_CHARS);
     } else {
-        write!(display_handle, "✗ ")?;
-    }
-    write!(display_handle, "{} ", task.id)?;
-    write!(display_handle, "{} ", task.text)?;
-    write!(display_handle, "{} ", task.categories.join(", "))?;
-    write!(display_handle, "{} ", task.created_at)?;
-    if task.completed {
-        write!(
-            display_handle,
-            "{} ",
-            task.completed_at
-                .context("completed_at was not set but completed was true")?
-        )?;
+        table.set_format(format::FormatBuilder::new().padding(1, 1).build());
     }
 
-    display_handle.write_all(b"\n")?;
-    display_handle.flush()?;
+    if header {
+        table.set_titles(constants::HEADER.clone());
+    }
+
+    for task in tasks {
+        let categories = task.categories.join(", ");
+
+        table.add_row(Row::new(vec![
+            Cell::new(&task.id.to_string()),
+            Cell::new(&task.text),
+            Cell::new(&categories),
+            Cell::new(&task.created_at),
+            Cell::new(&task.completed_at.unwrap_or_else(|| "".to_string())),
+            Cell::new(if task.completed { "✓" } else { "✗" }),
+        ]));
+    }
+
+    // Print the table to stdout
+    table.printstd();
 
     Ok(())
 }

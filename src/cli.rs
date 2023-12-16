@@ -3,7 +3,8 @@ use clap_complete::Shell;
 
 #[derive(Debug, Parser)]
 #[command(name = "bellado")]
-#[command(about, long_about = None, version, author)]
+#[command(about, long_about = None, version, author, arg_required_else_help = true)]
+
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -15,8 +16,8 @@ pub enum Commands {
     #[command(arg_required_else_help = false)]
     Init {
         /// Initialize a git repo
-        #[arg(short = 'g')]
-        git_bk: bool,
+        #[arg(short, long)]
+        git: bool,
     },
     #[command(arg_required_else_help = true)]
     Import {
@@ -27,47 +28,77 @@ pub enum Commands {
     #[command(arg_required_else_help = true, short_flag = 'g')]
     Git {
         /// Initialize a git repo
-        #[arg(short = 'i', conflicts_with = "git_push")]
-        git_init: bool,
+        #[arg(short, long, conflicts_with = "push", conflicts_with = "pull")]
+        init: bool,
         /// Push the changes
-        #[arg(short = 'p', conflicts_with = "git_pull")]
-        git_push: bool,
+        #[arg(short, long, conflicts_with = "pull", conflicts_with = "init")]
+        push: bool,
         ///Pull the changes
-        #[arg(short = 'P', conflicts_with = "git_push")]
-        git_pull: bool,
+        #[arg(short = 'P', long, conflicts_with = "push", conflicts_with = "init")]
+        pull: bool,
     },
     /// Create a new task
     #[command(arg_required_else_help = true, short_flag = 'a')]
     Add {
         /// The task you wish to create
+        #[arg(required = true)]
         task: String,
-        #[arg(short = 'c', num_args = 1..)]
 
         /// The category for the task you wish to create
-        #[arg(required = false, short = 'c', num_args = 1..)]
+        #[arg(required = false, short, num_args = 1..)]
         categories: Vec<String>,
     },
     /// List out tasks
     #[command(arg_required_else_help = false, short_flag = 'l')]
     List {
         /// Show all tasks
-        #[arg(short = 'a')]
+        #[arg(short, long)]
         all: bool,
 
         /// Show completed tasks
-        #[arg(short = 'c', conflicts_with = "all")]
+        #[arg(short, conflicts_with = "all")]
         complete: bool,
+
+        /// Show the table header
+        #[arg(long)]
+        header: bool,
+
+        /// Format the output as a table
+        #[arg(long = "table", short = 't')]
+        as_table: bool,
 
         /// Show tasks that match the given categories
         #[arg(short = 's', conflicts_with = "all", num_args = 1..)]
         categories: Vec<String>,
     },
-    /// Output the JSON file
-    #[command(arg_required_else_help = false, short_flag = 'j')]
-    Json {
-        /// Display the JSON in a pretty format
-        #[arg(short = 'p')]
+    /// Export the JSON file, in diffrent formats
+    #[command(arg_required_else_help = false, long_flag = "export", short_flag = 'x')]
+    Export {
+        /// Export as JSON
+        #[arg(
+            short,
+            long,
+            conflicts_with = "markdown",
+            conflicts_with = "with_categories"
+        )]
+        json: bool,
+
+        /// Export as JSON in a pretty format
+        #[arg(short, conflicts_with = "markdown", conflicts_with = "with_categories")]
         pretty: bool,
+
+        /// Export as Markdown
+        #[arg(short, long, conflicts_with = "json", conflicts_with = "pretty")]
+        markdown: bool,
+
+        /// Export as Markdown with categories
+        #[arg(
+            short = 'c',
+            long = "categories",
+            conflicts_with = "json",
+            conflicts_with = "pretty"
+        )]
+        with_categories: bool,
     },
     /// Mark task(s) as completed
     #[command(arg_required_else_help = true, short_flag = 'c')]
@@ -98,7 +129,16 @@ pub enum Commands {
     #[command(arg_required_else_help = true, short_flag = 'G')]
     Get {
         /// The ID of the task you wish to edit
+        #[arg(required = true)]
         task: u64,
+
+        /// Format the output as a table
+        #[arg(short = 't', long = "table")]
+        as_table: bool,
+
+        /// Show the table header
+        #[arg(long)]
+        header: bool,
     },
     /// Create completion files for bellado
     #[command(arg_required_else_help = true)]
